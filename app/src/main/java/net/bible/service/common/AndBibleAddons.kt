@@ -30,6 +30,10 @@ class ProvidedFont(val book: Book, val name: String, val path: String) {
     val file: File get() = File(File(book.bookMetaData.location), path)
 }
 
+class ProvidedReadingPlan(val book: Book, val fileName: String, val isDateBased: Boolean) {
+    val file: File get() = File(File(book.bookMetaData.location), fileName)
+}
+
 object AndBibleAddons {
     private var _addons: List<Book>? = null
     private val addons: List<Book> get() {
@@ -60,6 +64,18 @@ object AndBibleAddons {
             fonts.add(it)
         }
         return fontsByModule
+    }
+
+    val providedReadingPlans: Map<String, ProvidedReadingPlan> get() {
+        val readingPlansByFileName = mutableMapOf<String, ProvidedReadingPlan>()
+        addons.forEach { book ->
+            book.bookMetaData.getValues("AndBibleProvidesReadingPlan")?.forEach { fileName ->
+                val isDateBased = book.bookMetaData.getProperty("AndBibleReadingPlanDateBased")?.equals("True", ignoreCase = true) == true
+                val planCode = File(File(book.bookMetaData.location), fileName).nameWithoutExtension
+                readingPlansByFileName[planCode] = ProvidedReadingPlan(book, fileName, isDateBased)
+            }
+        }
+        return readingPlansByFileName
     }
 
     fun clearCaches() {

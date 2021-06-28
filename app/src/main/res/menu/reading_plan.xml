@@ -4,10 +4,16 @@
  @author Martin Denham [mjdenham at gmail dot com]
 -->
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
-	<item android:id="@+id/setCurrentDay"
-		  android:title="@string/set_current_day"/>
-    <item android:id="@+id/setStartDate"
-		  android:title="@string/rdg_plan_set_start_date"/>
-	<item android:id="@+id/reset" 
-		  android:title="@string/reset_generic"/>
+    <group android:id="@+id/group1">
+		<item android:id="@+id/setCurrentDay"
+			  android:title="@string/set_current_day"/>
+		<item android:id="@+id/setStartDate"
+			  android:title="@string/rdg_plan_set_start_date"/>
+		<item android:id="@+id/reset"
+			  android:title="@string/reset_generic"/>
+	</group>
+	<group android:id="@+id/group2">
+		<item android:id="@+id/import_reading_plan"
+			android:title="@string/import_reading_plan"/>
+	</group>
 </menu>

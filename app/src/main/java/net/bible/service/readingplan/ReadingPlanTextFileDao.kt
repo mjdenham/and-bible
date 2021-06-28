@@ -23,10 +23,13 @@ import android.util.Log
 import net.bible.android.BibleApplication
 import net.bible.android.SharedConstants
 import net.bible.android.view.activity.readingplan.DailyReading
+import net.bible.service.common.AndBibleAddons
 import net.bible.service.common.AndRuntimeException
 import net.bible.service.common.CommonUtils
 
 import org.crosswire.common.util.IOUtil
+import org.crosswire.jsword.book.basic.AbstractPassageBook
+import org.crosswire.jsword.book.sword.SwordBookMetaData
 import org.crosswire.jsword.versification.Versification
 import org.crosswire.jsword.versification.system.SystemKJV
 import org.crosswire.jsword.versification.system.SystemNRSVA
@@ -81,8 +84,11 @@ class ReadingPlanTextFileDao {
 
             val userPlans = userPlanCodes()
             if(userPlans != null) {
-                allCodes.addAll(userPlans)
+                allCodes.addAll(userPlans.filter { s -> !allCodes.contains(s) })
             }
+
+            val userPlanModules = AndBibleAddons.providedReadingPlans.keys
+            allCodes.addAll(userPlanModules.filter { s -> !allCodes.contains(s) })
 
             return allCodes
         }
@@ -183,9 +189,9 @@ class ReadingPlanTextFileDao {
         return getReadingPlanVersification(getPlanProperties(planCode))
     }
 
-    private fun getReadingPlanVersification(properties: ReadingPlanProperties): Versification =
+    private fun getReadingPlanVersification(properties: ReadingPlanProperties, versificationString: String? = null): Versification =
         try {
-            val versificationName = properties.getProperty(VERSIFICATION, DEFAULT_VERSIFICATION)
+            val versificationName = versificationString ?: properties.getProperty(VERSIFICATION, DEFAULT_VERSIFICATION)
             Versifications.instance().getVersification(versificationName)
         } catch (e: Exception) {
             Log.e(TAG, "Error loading versification from Reading plan:${properties.planCode}")
@@ -243,21 +249,30 @@ class ReadingPlanTextFileDao {
             try {
                 // check to see if a user has created his own reading plan with this name
                 val userReadingPlanFile = File(USER_READING_PLAN_FOLDER, filename)
-                val isUserPlan = userReadingPlanFile.exists()
+                val userReadingPlanModule = AndBibleAddons.providedReadingPlans[planCode]
+                val isUserPlan = userReadingPlanFile.exists() || userReadingPlanModule?.file?.exists() == true
 
                 inputStreamRaw = if (!isUserPlan) {
                     assetManager.open(READING_PLAN_FOLDER + File.separator + filename)
                 } else {
-                    FileInputStream(userReadingPlanFile)
+                    if (userReadingPlanModule?.file?.exists() == true)
+                        FileInputStream(userReadingPlanModule.file)
+                    else
+                        FileInputStream(userReadingPlanFile)
                 }
 
                 val byteArrayForReuse = ByteArrayOutputStream().apply { write(inputStreamRaw.readBytes()) }
                 properties.load(ByteArrayInputStream(byteArrayForReuse.toByteArray()))
                 properties.planCode = planCode
                 properties.numberOfPlanDays = getNumberOfPlanDays(properties)
-                properties.versification = getReadingPlanVersification(properties)
-                properties.isDateBasedPlan = properties["1"].toString().contains("^([a-z]|[A-Z]){3}-([0-9]{1,2});".toRegex())
-                getNameAndDescFromProperties(ByteArrayInputStream(byteArrayForReuse.toByteArray()), properties)
+                properties.versification = getReadingPlanVersification(properties, userReadingPlanModule?.book?.getProperty(VERSIFICATION))
+                properties.isDateBasedPlan = userReadingPlanModule?.isDateBased ?: properties["1"].toString().contains("^([a-z]|[A-Z]){3}-([0-9]{1,2});".toRegex())
+                if (userReadingPlanModule != null) {
+                    properties.planName = userReadingPlanModule.book.name
+                    properties.planDescription = userReadingPlanModule.book.getProperty(SwordBookMetaData.KEY_SHORT_PROMO)
+                } else {
+                    getNameAndDescFromProperties(ByteArrayInputStream(byteArrayForReuse.toByteArray()), properties)
+                }
 
                 Log.d(TAG, "The properties are now loaded")
                 Log.d(TAG, "properties: $properties")
@@ -266,8 +281,7 @@ class ReadingPlanTextFileDao {
                 cachedPlanProperties = properties
 
             } catch (e: IOException) {
-                Log.e(TAG, "Failed to open reading plan property file")
-                e.printStackTrace()
+                Log.e(TAG, "Failed to open reading plan property file", e)
             } finally {
                 IOUtil.close(inputStreamRaw)
             }

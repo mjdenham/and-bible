@@ -31,6 +31,8 @@ import android.widget.Button
 import android.widget.ImageView
 import android.widget.TableLayout
 import android.widget.TextView
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.view.MenuCompat
 import net.bible.android.BibleApplication
 
 import net.bible.android.activity.R
@@ -38,6 +40,7 @@ import net.bible.android.activity.databinding.ReadingPlanOneDayBinding
 import net.bible.android.control.readingplan.ReadingPlanControl
 import net.bible.android.view.activity.base.CustomTitlebarActivityBase
 import net.bible.android.view.activity.base.Dialogs
+import net.bible.android.view.activity.installzip.InstallZip
 import net.bible.android.view.activity.readingplan.actionbar.ReadingPlanActionBarManager
 import net.bible.service.common.CommonUtils
 import net.bible.service.readingplan.OneDaysReadingsDto
@@ -170,6 +173,11 @@ class DailyReading : CustomTitlebarActivityBase(R.menu.reading_plan) {
             Dialogs.instance.showErrorMsg(R.string.error_occurred, e)
         }
 
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu): Boolean {
+        MenuCompat.setGroupDividerEnabled(menu, true)
+        return super.onCreateOptionsMenu(menu)
     }
 
     /** user pressed read button by 1 reading
@@ -322,73 +330,83 @@ class DailyReading : CustomTitlebarActivityBase(R.menu.reading_plan) {
     /**
      * on Click handlers
      */
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        var isHandled = false
-
-        when (item.itemId) {
-            R.id.setCurrentDay -> {
-                // selected to allow jump to a certain day
-                Log.i(TAG, "Set current day")
-                try {
-                    Dialogs.instance.showMsg(R.string.msg_set_current_day_reading_plan, true)
-                    {
-                        // set previous day as finish, so that today's reading status will not be changed
-                        readingPlanControl.done(readingsDto.readingPlanInfo, dayLoaded - 1, true)
-                        updateTicksAndDone()
-                    }
-
-                } catch (e: Exception) {
-                    Log.e(TAG, "Error when Done daily reading", e)
-                    Dialogs.instance.showErrorMsg(R.string.error_occurred, e)
-                }
-
-            }
-            R.id.reset -> {
-                Dialogs.instance.showMsg(R.string.reset_plan_question, true)
+    override fun onOptionsItemSelected(item: MenuItem) = when (item.itemId) {
+        R.id.setCurrentDay -> {
+            // selected to allow jump to a certain day
+            Log.i(TAG, "Set current day")
+            try {
+                Dialogs.instance.showMsg(R.string.msg_set_current_day_reading_plan, true)
                 {
-                    readingPlanControl.reset(readingsDto.readingPlanInfo)
-                    finish()
+                    // set previous day as finish, so that today's reading status will not be changed
+                    readingPlanControl.done(readingsDto.readingPlanInfo, dayLoaded - 1, true)
+                    updateTicksAndDone()
                 }
-                isHandled = true
+
+            } catch (e: Exception) {
+                Log.e(TAG, "Error when Done daily reading", e)
+                Dialogs.instance.showErrorMsg(R.string.error_occurred, e)
             }
-            R.id.setStartDate -> {
 
-                val nowTime = Calendar.getInstance()
-                val planStartDate = Calendar.getInstance()
-                planStartDate.time = readingsDto.readingPlanInfo.startDate ?: nowTime.time
-                val yearSet = planStartDate.get(Calendar.YEAR)
-                val monthSet = planStartDate.get(Calendar.MONTH)
-                val daySet = planStartDate.get(Calendar.DAY_OF_MONTH)
-
-                val datePicker = DatePickerDialog(this, DatePickerDialog.OnDateSetListener {
-                    _, year, month, day_ ->
-                    planStartDate.set(year, month, day_)
-                    readingPlanControl.setStartDate(readingsDto.readingPlanInfo, planStartDate.time)
-
-                    // refetch readings for chosen day
-                    readingsDto = readingPlanControl.getDaysReading(dayLoaded)
-
-                    // update date and day no
-                    binding.date.text = readingsDto.readingDateString
-                    binding.day.text = readingsDto.dayDesc
-                }, yearSet, monthSet, daySet)
-                datePicker.datePicker.maxDate = nowTime.timeInMillis
-                datePicker.show()
-
-                isHandled = true
+            true
+        }
+        R.id.reset -> {
+            Dialogs.instance.showMsg(R.string.reset_plan_question, true)
+            {
+                readingPlanControl.reset(readingsDto.readingPlanInfo)
+                finish()
             }
-        }
 
-        if (!isHandled) {
-            isHandled = super.onOptionsItemSelected(item)
+            true
         }
+        R.id.setStartDate -> {
 
-        return isHandled
+            val nowTime = Calendar.getInstance()
+            val planStartDate = Calendar.getInstance()
+            planStartDate.time = readingsDto.readingPlanInfo.startDate ?: nowTime.time
+            val yearSet = planStartDate.get(Calendar.YEAR)
+            val monthSet = planStartDate.get(Calendar.MONTH)
+            val daySet = planStartDate.get(Calendar.DAY_OF_MONTH)
+
+            val datePicker = DatePickerDialog(this, DatePickerDialog.OnDateSetListener { _, year, month, day_ ->
+                planStartDate.set(year, month, day_)
+                readingPlanControl.setStartDate(readingsDto.readingPlanInfo, planStartDate.time)
+
+                // refetch readings for chosen day
+                readingsDto = readingPlanControl.getDaysReading(dayLoaded)
+
+                // update date and day no
+                binding.date.text = readingsDto.readingDateString
+                binding.day.text = readingsDto.dayDesc
+            }, yearSet, monthSet, daySet)
+            datePicker.datePicker.maxDate = nowTime.timeInMillis
+            datePicker.show()
+
+            true
+        }
+        R.id.import_reading_plan -> {
+            val intent = Intent(Intent.ACTION_GET_CONTENT)
+            intent.type = "application/zip"
+            importPlanLauncher.launch(intent)
+
+            true
+        }
+        else -> super.onOptionsItemSelected(item)
     }
+
+    val importPlanLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        val data = result?.data?.data
+        if (result.resultCode != RESULT_OK || data == null) return@registerForActivityResult
+        Log.d(TAG, "Importing plan")
+
+        val intent = Intent(Intent.ACTION_VIEW, data, this, InstallZip::class.java)
+        installZipLauncher.launch(intent)
+    }
+
+    val installZipLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { }
 
     companion object {
 
-        private val TAG = "DailyReading"
+        private const val TAG = "DailyReading"
         private val app = BibleApplication.application
 
         // Link AB distributed reading plan file names with plan name/description resource strings
