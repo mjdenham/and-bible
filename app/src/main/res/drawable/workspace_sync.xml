@@ -1,0 +1,28 @@
+<!--
+  ~ Copyright (c) 2020 Martin Denham, Tuomas Airaksinen and the And Bible contributors.
+  ~
+  ~ This file is part of And Bible (http://github.com/AndBible/and-bible).
+  ~
+  ~ And Bible is free software: you can redistribute it and/or modify it under the
+  ~ terms of the GNU General Public License as published by the Free Software Foundation,
+  ~ either version 3 of the License, or (at your option) any later version.
+  ~
+  ~ And Bible is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+  ~ without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+  ~ See the GNU General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public License along with And Bible.
+  ~ If not, see http://www.gnu.org/licenses/.
+  ~
+  -->
+
+<vector android:height="24dp" android:tint="#00C800"
+    android:viewportHeight="840.0" android:viewportWidth="840.0"
+    android:width="24dp" xmlns:android="http://schemas.android.com/apk/res/android">
+    <group
+        android:translateX="160"
+        android:translateY="160"
+        >
+        <path android:fillColor="#FF000000" android:pathData="m 124.693,289.462 v 42.514 c 0,17.5 14.237,31.737 31.738,31.737 H 247.2 l -5.363,55.423 h -25.101 v 30.414 h 22.158 158.903 22.158 v -30.414 h -25.101 l -5.362,-55.423 h 90.768 c 17.5,0 31.738,-14.237 31.738,-31.737 V 289.462 Z M 480.262,62.45 H 156.431 c -17.5,0 -31.738,14.237 -31.738,31.738 v 6.639 l 1.241,158.221 H 512 V 94.188 C 512,76.687 497.762,62.45 480.262,62.45 Z M 248.81073,-151.3291 c -38.51179,8.50597 -75.72894,24.21396 -110.58212,46.86244 -71.63104,46.547544 -126.630595,119.792977 -154.85922,206.24102 -27.851376,85.29557 -28.459132,179.23167 -1.689914,264.45898 l 2.659103,8.46178 53.83226,-20.79994 -2.655958,-8.45947 C 13.042801,273.89004 13.551182,195.02331 36.968619,123.30738 60.672076,50.71329 106.86203,-10.805789 167.04131,-49.914051 c 58.61917,-38.090364 125.03497,-52.762899 192.1556,-42.453789 46.44386,7.134004 90.82214,26.486958 129.12749,55.688474 l -28.20369,6.549044 11.68379,61.886555 123.90217,-28.7767954 -25.72195,-136.0218876 -55.79168,12.97952 5.83656,30.864708 c -45.43796,-34.483928 -98.01231,-57.350818 -153.0117,-65.799038 -39.93166,-6.13229 -79.6954,-4.83781 -118.20717,3.66816 z m 405.78271,256.48583 -54.1652,19.69977 2.51685,8.51296 c 20.95955,70.90147 19.50448,148.71732 -4.11736,219.12789 -23.93927,71.35016 -69.81221,131.89968 -129.16502,170.46838 -28.41084,18.46092 -58.7775,31.20243 -89.87507,38.43404 -84.30605,19.60698 -173.80328,-1.31651 -243.41508,-58.67556 l 30.56828,-7.11148 -11.70205,-61.88231 -122.707449,28.54694 26.769985,141.564 55.791714,-12.97951 -6.09241,-32.2177 c 45.3893,35.57083 98.34232,59.43637 154.30556,68.79285 42.74718,7.14831 86.12302,5.62411 127.89109,-4.09292 37.59349,-8.74738 73.90097,-24.13795 107.27814,-45.82575 70.65502,-45.91374 125.26699,-117.9885 153.77767,-202.97165 28.09958,-83.75155 29.83001,-176.40367 4.8572,-260.877 z"/>
+    </group>
+</vector>
